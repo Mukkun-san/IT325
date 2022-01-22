@@ -1,8 +1,10 @@
 gensim
 git+https://github.com/boudinfl/pke.git
 bert-extractive-summarizer
-spacy==2.2.3
+setuptools
+wheel
+spacy == 2.2.3
 nltk
 pywsd
 flashtext
-wn==0.0.22
+wn == 0.0.22
