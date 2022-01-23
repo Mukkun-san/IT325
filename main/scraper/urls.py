@@ -2,5 +2,5 @@ from django.conf.urls import url
 from scraper import views
 
 urlpatterns = [
-    url(r"^api/articles$", views.list_articles),
+    url("api/scrape/article/", views.scrape_article),
 ]

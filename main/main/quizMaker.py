@@ -1,25 +1,15 @@
-import math
-from time import time
 from summarizer import Summarizer
-
-t = time()
-print(t)
-f = open("egypt.txt", "r", encoding="utf8")
-full_text = f.read()
-
-model = Summarizer()
-result = model(full_text, min_length=60, max_length=500, ratio=0.4)
-
-summarized_text = "".join(result)
-print(summarized_text)
-
-
-import pprint
-import itertools
-import re
 import pke
 import string
 from nltk.corpus import stopwords
+from nltk.tokenize import sent_tokenize
+from flashtext import KeywordProcessor
+import requests
+import re
+import random
+from pywsd.similarity import max_similarity
+from pywsd.lesk import adapted_lesk
+from nltk.corpus import wordnet as wn
 
 
 def get_nouns_multipartite(text):
@@ -44,22 +34,6 @@ def get_nouns_multipartite(text):
         out.append(key[0])
 
     return out
-
-
-f = open("egypt.txt", "r", encoding="utf8")
-full_text = f.read()
-keywords = get_nouns_multipartite(full_text)
-print(keywords)
-filtered_keys = []
-for keyword in keywords:
-    if keyword.lower() in summarized_text.lower():
-        filtered_keys.append(keyword)
-
-print(filtered_keys)
-
-
-from nltk.tokenize import sent_tokenize
-from flashtext import KeywordProcessor
 
 
 def tokenize_sentences(text):
@@ -87,22 +61,6 @@ def get_sentences_for_keyword(keywords, sentences):
         keyword_sentences[key] = values
     return keyword_sentences
 
-
-sentences = tokenize_sentences(summarized_text)
-keyword_sentence_mapping = get_sentences_for_keyword(filtered_keys, sentences)
-
-print(keyword_sentence_mapping)
-
-
-import requests
-import json
-import re
-import random
-from pywsd.similarity import max_similarity
-from pywsd.lesk import adapted_lesk
-from pywsd.lesk import simple_lesk
-from pywsd.lesk import cosine_lesk
-from nltk.corpus import wordnet as wn
 
 # Distractors from Wordnet
 def get_distractors_wordnet(syn, word):
@@ -174,36 +132,43 @@ def get_distractors_conceptnet(word):
     return distractor_list
 
 
-key_distractor_list = {}
+def make_quiz(full_text):
+    model = Summarizer()
+    result = model(full_text, min_length=60, max_length=500, ratio=0.4)
+    summarized_text = "".join(result)
+    keywords = get_nouns_multipartite(full_text)
+    filtered_keys = []
+    for keyword in keywords:
+        if keyword.lower() in summarized_text.lower():
+            filtered_keys.append(keyword)
+    sentences = tokenize_sentences(summarized_text)
+    keyword_sentence_mapping = get_sentences_for_keyword(filtered_keys, sentences)
 
-for keyword in keyword_sentence_mapping:
-    wordsense = get_wordsense(keyword_sentence_mapping[keyword][0], keyword)
-    if wordsense:
-        distractors = get_distractors_wordnet(wordsense, keyword)
-        if len(distractors) == 0:
+    key_distractor_list = {}
+    for keyword in keyword_sentence_mapping:
+        wordsense = get_wordsense(keyword_sentence_mapping[keyword][0], keyword)
+        if wordsense:
+            distractors = get_distractors_wordnet(wordsense, keyword)
+            if len(distractors) == 0:
+                distractors = get_distractors_conceptnet(keyword)
+            if len(distractors) != 0:
+                key_distractor_list[keyword] = distractors
+        else:
             distractors = get_distractors_conceptnet(keyword)
-        if len(distractors) != 0:
-            key_distractor_list[keyword] = distractors
-    else:
+            if len(distractors) != 0:
+                key_distractor_list[keyword] = distractors
 
-        distractors = get_distractors_conceptnet(keyword)
-        if len(distractors) != 0:
-            key_distractor_list[keyword] = distractors
-
-index = 1
-
-for each in key_distractor_list:
-    sentence = keyword_sentence_mapping[each][0]
-    pattern = re.compile(each, re.IGNORECASE)
-    output = pattern.sub(" _______ ", sentence)
-    print("%s)" % (index), output)
-    choices = [each.capitalize()] + key_distractor_list[each]
-    top4choices = choices[:4]
-    random.shuffle(top4choices)
-    optionchoices = ["a", "b", "c", "d"]
-    for idx, choice in enumerate(top4choices):
-        print("\t", optionchoices[idx], ")", " ", choice)
-    print("\nMore options: ", choices[4:20], "\n\n")
-    index = index + 1
-
-print(math.ceil(time() - t))
+    nb = 1
+    for each in key_distractor_list:
+        sentence = keyword_sentence_mapping[each][0]
+        pattern = re.compile(each, re.IGNORECASE)
+        output = pattern.sub(" _______ ", sentence)
+        print("%s)" % (nb), output)
+        choices = [each.capitalize()] + key_distractor_list[each]
+        top4choices = choices[:4]
+        random.shuffle(top4choices)
+        optionchoices = ["a", "b", "c", "d"]
+        for idx, choice in enumerate(top4choices):
+            print("\t", optionchoices[idx], ")", " ", choice)
+        print("\nMore options: ", choices[4:20], "\n\n")
+        nb += 1
