@@ -80,11 +80,15 @@ WSGI_APPLICATION = "main.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "djongo",
-        "NAME": "main_db",
-        "HOST": "mongodb+srv://admin:7BZ0J3eTWj1ExTNa@cluster.wcp0f.gcp.mongodb.net/main_db",
-        "PORT": 80,
-        "USER": "admin",
-        "PASSWORD": "7BZ0J3eTWj1ExTNa",
+        "CLIENT": {
+            "host": "mongodb://localhost:27017",
+            "name": "django_db",
+        },
+        # "CLIENT": {
+        #     "host": "mongodb+srv://admin:7BZ0J3eTWj1ExTNa@cluster.wcp0f.gcp.mongodb.net",
+        #     "name": "django_db",
+        #     "authMechanism": "SCRAM-SHA-1",
+        # },
     }
 }
 
