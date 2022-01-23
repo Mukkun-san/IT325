@@ -50,3 +50,10 @@ def scrape_article(request):
             article_serializer.errors, status=status.HTTP_400_BAD_REQUEST
         )
         # 'safe=False' for objects serialization
+
+
+@api_view(["POST"])
+def generate_mcq(request):
+    content = JSONParser().parse(request)["content"]
+    generate_mcq(content)
+    return JsonResponse({"N° of questions": 0, "MCQs": []}, status=status.HTTP_200_OK)

@@ -132,7 +132,7 @@ def get_distractors_conceptnet(word):
     return distractor_list
 
 
-def make_quiz(full_text):
+def generate_mcq(full_text):
     model = Summarizer()
     result = model(full_text, min_length=60, max_length=500, ratio=0.4)
     summarized_text = "".join(result)
