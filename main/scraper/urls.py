@@ -3,5 +3,5 @@ from scraper import views
 
 urlpatterns = [
     url("api/scrape/article/", views.scrape_article),
-    url("api/generate/mcq", views.generate_mcq),
+    url("api/generate-mcqs/from-title", views.generate_quiz),
 ]

@@ -11,6 +11,8 @@ from pywsd.similarity import max_similarity
 from pywsd.lesk import adapted_lesk
 from nltk.corpus import wordnet as wn
 
+from scraper.models import Question, Quiz
+
 
 def get_nouns_multipartite(text):
     out = []
@@ -132,16 +134,17 @@ def get_distractors_conceptnet(word):
     return distractor_list
 
 
-def generate_mcq(full_text):
+def generate_mcqs(article_original):
+    print("started MCQ generation")
     model = Summarizer()
-    result = model(full_text, min_length=60, max_length=500, ratio=0.4)
-    summarized_text = "".join(result)
-    keywords = get_nouns_multipartite(full_text)
+    result = model(article_original, min_length=60, max_length=500, ratio=0.4)
+    article_summary = "".join(result)
+    keywords = get_nouns_multipartite(article_original)
     filtered_keys = []
     for keyword in keywords:
-        if keyword.lower() in summarized_text.lower():
+        if keyword.lower() in article_summary.lower():
             filtered_keys.append(keyword)
-    sentences = tokenize_sentences(summarized_text)
+    sentences = tokenize_sentences(article_summary)
     keyword_sentence_mapping = get_sentences_for_keyword(filtered_keys, sentences)
 
     key_distractor_list = {}

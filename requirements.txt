@@ -8,3 +8,4 @@ nltk
 pywsd
 flashtext
 wn == 0.0.22
+Django == 2.2.26
